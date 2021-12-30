@@ -136,7 +136,7 @@ contract FlightSuretyData {
               require(!isDuplicate, "Caller has already called this function.");
               /*add the address to the requestor list*/
               multiOperation.push(msg.sender);
-              if (multiOperation.length >= registeredAirline.length.mul(100).div(MIN_PERC_REGISTERED)) {
+              if (multiOperation.length >= fundedAirline.length.mul(MIN_PERC_REGISTERED).div(100)) {
                   operational = mode;
                   multiOperation = new address[](0);
               }
@@ -164,7 +164,8 @@ contract FlightSuretyData {
     }
 
     function registerAirline
-                            (address newAirline
+                            (address newAirline,
+                            address fromAddress
                             )
                             external
                             requireAuthorizeCaller
@@ -182,7 +183,7 @@ contract FlightSuretyData {
       /*If # of registerred airline is less than minimal, register by existing airline*/
       if (fundedAirline.length <=MIN_REGISTERED){
         for (i=0; i<fundedAirline.length; i++){
-          if (msg.sender == fundedAirline[i]){
+          if (fromAddress == fundedAirline[i]){
             registeredAirline.push(newAirline);
             return(true,0);
           }
@@ -193,19 +194,19 @@ contract FlightSuretyData {
       else {
         /* the requested account need to be a registered airline, and not duplicated*/
         for (uint l=0; l<fundedAirline.length; l++){
-          if (msg.sender == fundedAirline[l]){
+          if (fromAddress == fundedAirline[l]){
 
             bool isDuplicate = false;
 
             for (uint m=0; m<multiRegister[newAirline].length; m++){
-              if (msg.sender == multiRegister[newAirline][m]){
+              if (fromAddress == multiRegister[newAirline][m]){
                 isDuplicate = true;
                 return(false,multiRegister[newAirline].length);
               }
             }
             /*add the address to the requestor list*/
-            multiRegister[newAirline].push(msg.sender);
-            if (multiRegister[newAirline].length >= fundedAirline.length.mul(100).div(MIN_PERC_REGISTERED)) {
+            multiRegister[newAirline].push(fromAddress);
+            if (multiRegister[newAirline].length >= fundedAirline.length.mul(MIN_PERC_REGISTERED).div(100)) {
                 registeredAirline.push(newAirline);
                 delete multiRegister[newAirline];
                 return(true,0);
@@ -229,7 +230,6 @@ contract FlightSuretyData {
                               uint256 timestamp
                             )
                             payable
-                            requireAuthorizeCaller
                             external
     {
       require(timestamp - block.timestamp >= 1 hours ,"Insurance purchasing has been closed!" );
@@ -274,15 +274,15 @@ contract FlightSuretyData {
     */
     function pay
                             (
-
+                              address insuree
                             )
                             payable
                             external
 
     {
-      uint256 amount = insureeBalance[msg.sender];
-      insureeBalance[msg.sender] = 0;
-      msg.sender.transfer(amount);
+      uint256 amount = insureeBalance[insuree];
+      insureeBalance[insuree] = 0;
+      insuree.transfer(amount);
     }
 
    /**

@@ -89,6 +89,15 @@ contract FlightSuretyApp {
         return flightSuretyData.isOperational();  // Modify to call data contract's status
     }
 
+
+    function isRegistered(address newAirline ) view
+                            public
+                            returns(bool)
+    {
+        return(flightSuretyData.isRegistered(newAirline));  // Modify to call data contract's status
+    }
+
+
     function setTestingMode(bool mode) external
                             requireContractOwner
                             requireIsOperational
@@ -112,7 +121,7 @@ contract FlightSuretyApp {
                             requireIsOperational
                             returns(bool success, uint256 votes)
     {
-        return (flightSuretyData.registerAirline(newAirline));
+        return (flightSuretyData.registerAirline(newAirline,msg.sender));
     }
 
 
@@ -124,7 +133,7 @@ contract FlightSuretyApp {
                                 (string flight,
                                 uint256 timestamp
                                 )
-                                requireIsOperational
+
                                 external
     {
       /*check if the airline has registered*/
@@ -140,12 +149,11 @@ contract FlightSuretyApp {
           airline : msg.sender});
     }
 
+    event InsurancePurchase(address airline, string flight, uint256 timestamp);
 
-    function buy(address airline,string  flight, uint256 timestamp) requireIsOperational payable external {
-      bytes32 flightKey = getFlightKey(msg.sender, flight,timestamp);
-      require(flights[flightKey].isRegistered,"The flight has not been registered!");
-      flightSuretyData.buy(airline, flight, timestamp);
-}
+    function pay() payable external{
+      flightSuretyData.pay(msg.sender);
+    }
    /**
     * @dev Called after oracle has updated flight status
     *
@@ -199,6 +207,7 @@ contract FlightSuretyApp {
 
         emit OracleRequest(index, airline, flight, timestamp);
     }
+
 
 
 // region ORACLE MANAGEMENT
@@ -384,8 +393,8 @@ contract FlightSuretyApp {
 /*Interface to FlightSuretyData*/
 contract Int_FlightSuretyData{
   function isOperational() public view returns(bool);
-  function registerAirline(address newAirline) public returns(bool , uint256 );
-  function isRegistered(address newAirline) public returns(bool);
-  function buy(address airline,string  flight, uint256 timestamp) external;
+  function isRegistered(address newAirline) public view returns(bool);
   function creditInsurees(bytes32 flightKey) external;
+  function registerAirline(address newAirline,address fromAddress) external returns(bool success, uint256 votes);
+  function pay(address insuree) external payable;
 }

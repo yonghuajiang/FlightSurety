@@ -16,11 +16,11 @@ export default class Contract {
 
     initialize(callback) {
         this.web3.eth.getAccounts((error, accts) => {
-           
+
             this.owner = accts[0];
 
             let counter = 1;
-            
+
             while(this.airlines.length < 5) {
                 this.airlines.push(accts[counter++]);
             }
@@ -46,11 +46,43 @@ export default class Contract {
             airline: self.airlines[0],
             flight: flight,
             timestamp: Math.floor(Date.now() / 1000)
-        } 
+        }
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
             .send({ from: self.owner}, (error, result) => {
                 callback(error, payload);
             });
+    }
+
+    registerFlight(flight,fighttime) {
+        let self = this;
+        let flighttimestamp = new Date(fighttime);
+        let payload = {
+            airline: self.airlines[0],
+            flight: flight,
+            timestamp: Math.floor(flighttimestamp.getTime() / 1000)
+        }
+        self.flightSuretyApp.methods
+            .registerFlight(payload.flight, payload.timestamp)
+            .send({ from: self.owner});
+
+    }
+
+    buyInsurance(flight,fighttime,insureamount) {
+        let self = this;
+        let flighttimestamp = new Date(fighttime);
+        let insureWei = Web3.utils.toWei(insureamount.toString(),'ether');
+        let payload = {
+            airline: self.airlines[0],
+            flight: flight,
+            timestamp: Math.floor(flighttimestamp.getTime() / 1000)
+        };
+        self.flightSuretyApp.methods
+            .buy(airline,flight,timestamp).send({ from: self.owner, value:insureamount});
+    }
+
+    fund_withdraw() {
+      let self = this;
+      self.flightSuretyApp.methods.pay().send({ from: self.owner});
     }
 }

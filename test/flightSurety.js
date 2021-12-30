@@ -8,6 +8,7 @@ contract('Flight Surety Tests', async (accounts) => {
   before('setup contract', async () => {
     config = await Test.Config(accounts);
     await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
+
   });
 
   /****************************************************************************************/
@@ -50,24 +51,9 @@ contract('Flight Surety Tests', async (accounts) => {
       }
       assert.equal(accessDenied, false, "Access not restricted to Contract Owner");
 
-  });
+      /*revert back to true*/
 
-  it(`(multiparty) can block access to functions using requireIsOperational when operating status is false`, async function () {
-
-      await config.flightSuretyData.setOperatingStatus(false);
-      let reverted = false;
-      try
-      {
-          await config.flightSuretyApp.setTestingMode(true);
-      }
-      catch(e) {
-          reverted = true;
-      }
-      assert.equal(reverted, true, "Access not blocked for requireIsOperational");
-
-      // Set it back for other tests to work
-      //await config.flightSuretyData.setOperatingStatus(true);
-
+      await config.flightSuretyData.setOperatingStatus(true);
   });
 
   it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
@@ -89,5 +75,62 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
+  it('(multiparty consensus) Only existing airlines may register a new airline until there are at least four airlines registered', async () => {
 
+    // ARRANGE
+    // Register and Fund two airlines
+    await config.flightSuretyData.fund({from: accounts[0],value: web3.utils.toWei('10', "ether")});
+
+    await config.flightSuretyApp.registerAirline(accounts[1], {from: accounts[0]});
+    await config.flightSuretyApp.registerAirline(accounts[2], {from: accounts[0]});
+    await config.flightSuretyApp.registerAirline(accounts[3], {from: accounts[0]});
+    await config.flightSuretyData.fund({from: accounts[1],value: web3.utils.toWei('10', "ether")});
+    await config.flightSuretyData.fund({from: accounts[2],value: web3.utils.toWei('10', "ether")});
+    await config.flightSuretyData.fund({from: accounts[3],value: web3.utils.toWei('10', "ether")});
+    // ACT
+    try {
+        await config.flightSuretyApp.registerAirline(accounts[4], {from:  accounts[1]});
+    }
+    catch(e) {
+
+    }
+    let result = await config.flightSuretyApp.isRegistered.call(accounts[4]);
+
+    // ASSERT
+    assert.equal(result, true, "Funded airlines are able to register another airline");
+
+  });
+
+
+  it('(multiparty consensus) need 50% of funded airlines to register a new airline', async () => {
+
+    // ARRANGE
+    // Register and Fund two airlines
+    await config.flightSuretyData.fund({from: accounts[4],value: web3.utils.toWei('10', "ether")});
+
+    // ACT
+    try {
+        let reg_result = await config.flightSuretyApp.registerAirline(accounts[7], {from:  accounts[0]});
+    }
+    catch(e) {
+    }
+
+    let result = await config.flightSuretyApp.isRegistered.call(accounts[7]);
+
+    // ASSERT
+    assert.equal(result, false, "Airline shouldn't be registered yet");
+
+    try {
+        await config.flightSuretyApp.registerAirline(accounts[7], {from:  accounts[1]});
+        await config.flightSuretyApp.registerAirline(accounts[7], {from:  accounts[3]});
+        await config.flightSuretyApp.registerAirline(accounts[7], {from:  accounts[4]});
+    }
+    catch(e) {
+    }
+    result = await config.flightSuretyApp.isRegistered.call(accounts[7]);
+
+    // ASSERT
+    assert.equal(result, true, "Consensus reached!");
+
+  });
 });
