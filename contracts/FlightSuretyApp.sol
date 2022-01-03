@@ -205,6 +205,7 @@ contract FlightSuretyApp {
                         )
                         external
                         requireIsOperational
+                        returns(uint8,address,string,uint256)
     {
         uint8 index = getRandomIndex(msg.sender);
 
@@ -222,6 +223,7 @@ contract FlightSuretyApp {
                                             });
 
         emit OracleRequest(index, airline, flight, timestamp);}
+        return(index, airline, flight, timestamp);
     }
 
 
@@ -326,7 +328,7 @@ contract FlightSuretyApp {
 
         bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
         //emit OracleSumitEvent(index, airline, flight, timestamp);
-        require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
+        //require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
 
         oracleResponses[key].responses[statusCode].push(msg.sender);
 

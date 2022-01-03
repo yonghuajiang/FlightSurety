@@ -81,7 +81,8 @@ contract('Oracles', async (accounts) => {
         }
         catch(e) {
           // Enable this when debugging
-          console.log('\nError', flight, timestamp);
+          console.log(e);
+          //console.log('\nError', flight, timestamp);
         }
       }
   });
