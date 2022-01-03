@@ -28,6 +28,7 @@ contract FlightSuretyApp {
 
     struct Flight {
         bool isRegistered;
+        bool isActive;
         uint8 statusCode;
         uint256 updatedTimestamp;
         address airline;
@@ -129,6 +130,15 @@ contract FlightSuretyApp {
     * @dev Register a future flight for insuring.
     *
     */
+
+    function isRegisterFlight(address airline, string flight, uint256 timestamp) view
+                            public
+                            returns(bool)
+    {
+        bytes32 flightKey = getFlightKey(airline, flight,timestamp);
+        return flights[flightKey].isRegistered;  // Modify to call data contract's status
+    }
+
     function registerFlight
                                 (string flight,
                                 uint256 timestamp
@@ -144,6 +154,7 @@ contract FlightSuretyApp {
       require(!flights[flightKey].isRegistered,"The flight has been registered before!");
       flights[flightKey] = Flight({
           isRegistered : true,
+          isActive: true,
           statusCode : STATUS_CODE_UNKNOWN,
           updatedTimestamp : block.timestamp,
           airline : msg.sender});
@@ -169,9 +180,11 @@ contract FlightSuretyApp {
                                 requireIsOperational
     {
       /*update flight status*/
+
       bytes32 flightKey = getFlightKey(airline, flight,timestamp);
       flights[flightKey] = Flight({
           isRegistered : true,
+          isActive: false,
           statusCode : statusCode,
           updatedTimestamp : block.timestamp,
           airline :airline});
@@ -197,15 +210,18 @@ contract FlightSuretyApp {
 
         // Generate a unique key for storing the request
         bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
-
+        bytes32 flightkey = keccak256(abi.encodePacked(airline, flight, timestamp));
         /*Only submit Oracle request when the flight status is unknow*/
-        require(flights[key].statusCode == STATUS_CODE_UNKNOWN, "Flight status has been submitted!");
+        if (flights[flightkey].statusCode != STATUS_CODE_UNKNOWN){
+          emit FlightStatusInfo(airline, flight, timestamp,flights[flightkey].statusCode);
+        }
+        else {
         oracleResponses[key] = ResponseInfo({
                                                 requester: msg.sender,
                                                 isOpen: true
                                             });
 
-        emit OracleRequest(index, airline, flight, timestamp);
+        emit OracleRequest(index, airline, flight, timestamp);}
     }
 
 
@@ -293,6 +309,7 @@ contract FlightSuretyApp {
     // For the response to be accepted, there must be a pending request that is open
     // and matches one of the three Indexes randomly assigned to the oracle at the
     // time of registration (i.e. uninvited oracles are not welcome)
+    //event OracleSumitEvent(uint8 index, address airline, string flight, uint256 timestamp);
     function submitOracleResponse
                         (
                             uint8 index,
@@ -304,14 +321,12 @@ contract FlightSuretyApp {
                         external
                         requireIsOperational
     {
-        require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
+        if((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index)) {
 
 
         bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
+        //emit OracleSumitEvent(index, airline, flight, timestamp);
         require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
-
-        /*if flight status is known, Oracle can't submit response any more*/
-        require(flights[key].statusCode == STATUS_CODE_UNKNOWN, "Flight status has been submitted!");
 
         oracleResponses[key].responses[statusCode].push(msg.sender);
 
@@ -324,6 +339,7 @@ contract FlightSuretyApp {
 
             // Handle flight status as appropriate
             processFlightStatus(airline, flight, timestamp, statusCode);
+        }
         }
     }
 
@@ -365,15 +381,14 @@ contract FlightSuretyApp {
         return indexes;
     }
 
-    // Returns array of three non-duplicating integers from 0-9
+    // Returns array of three non-duplicating integers from 0-5
     function getRandomIndex
-                            (
-                                address account
+                            (address account
                             )
                             internal
                             returns (uint8)
     {
-        uint8 maxValue = 10;
+        uint8 maxValue = 5;
 
         // Pseudo random number...the incrementing nonce adds variation
         uint8 random = uint8(uint256(keccak256(abi.encodePacked(blockhash(block.number - nonce++), account))) % maxValue);

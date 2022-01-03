@@ -254,7 +254,7 @@ contract FlightSuretyData {
     function creditInsurees
                                 (bytes32 flightKey
                                 )
-                                requireAuthorizeCaller
+
                                 external
 
     {

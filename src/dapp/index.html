@@ -2,51 +2,60 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>FlightSurety</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>FlightSurety</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="#">
 </head>
 
 <body>
 
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-        <a class="navbar-brand" href="#">FlightSurety</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault"
-            aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </nav>
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <a class="navbar-brand" href="#">FlightSurety</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  </nav>
 
-    <main class="container">
+  <main class="container">
 
+    <label>Airline: Please register flight here</lable>
+      <div class="row top-20">
+        <label class="form" style="margin-right: 40px;">Flight </label> <input type="text" id="a-flight-number">
+        <label class="form" style="margin-left: 50px;">Flight Time</label> <input type="text" id="a-flight-time">
+        <btn class="btn btn-primary" id="add_flight">Add Flight</btn>
+      </div>
+      <hr>
+
+      <label>Passenger: You can purchase insurance below</lable>
+        <div class="row top-20">
+          <label class="form">Flight List </label>
+
+          <select id="p-flightlist">
+            <option value="AA AA8017 2021-12-01 10:30:00">AA AA8017 2021-12-01 10:30:00</option>
+            <option value="AA AA1388 2022-01-01 17:45:00">AA AA1388 2022-01-01 17:45:00</option>
+            <option value="AA AA5232 2022-02-22 12:30:00">AA AA5232 2022-02-22 12:30:00</option>
+          </select>
+
+          <label class="form" style="margin-left: 10px;">Insure Amount</label> <input type="text" id="p-insure-amt">
+          <btn class="btn btn-primary" id="purchase_ins" style="margin-right: 20px;">Purchase Insurance</btn>
+          <btn class="btn btn-primary" id="fund_withdraw">WithDraw</btn>
+        </div>
+        <hr>
+        <hr>
+
+        <div class="row top-20">
+          <select id="O-flight-list"  style="margin-left: 80px;">
+            <option value="AA AA8017 2021-12-01 10:30:00">AA AA8017 2021-12-01 10:30:00</option>
+            <option value="AA AA1388 2022-01-01 17:45:00">AA AA1388 2022-01-01 17:45:00</option>
+            <option value="AA AA5232 2022-02-22 12:30:00">AA AA5232 2022-02-22 12:30:00</option>
+          </select>
+          <btn class="btn btn-primary" id="submit-oracle" style="margin-left: 100px;">Check Flight Status</btn>
+        </div>
         <div id="display-wrapper" class="top-20">
         </div>
-        <div class="row top-20">
-        <label class="form">Flight     </label> <input type="text" id="s-flight-number"><br>
-        <label class="form">Flight Time</label> <input type="text" id="s-flight-time"><br>
-        <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn><br />
-        </div>
-
-        <div class="row top-20">
-        <label class="form">Flight     </label> <input type="text" id="a-flight-number"><br>
-        <label class="form">Flight Time</label> <input type="text" id="a-flight-time"><br>
-        <btn class="btn btn-primary" id="add_flight">Add Flight</btn>
-        </div>
-
-        <div class="row top-20">
-        <label class="form">Flight     </label> <input type="text" id="p-flight-number"><br>
-        <label class="form">Flight Time</label> <input type="text" id="p-flight-time"><br>
-        <label class="form">Insured Amt</label> <input type="text" id="p-insure-amount"><br>
-        <btn class="btn btn-primary" id="purchase_ins">Purchase Insurance</btn><br />
-        </div>
-
-        <div class="row top-20">
-        <btn class="btn btn-primary" id="fund_withdraw">WithDraw</btn><br />
-        </div>
-
-    </main>
+  </main>
 
 </body>
 

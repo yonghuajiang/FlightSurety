@@ -26,27 +26,51 @@ flightSuretyApp.methods.REGISTRATION_FEE().call({from:oracles[0]}).then(fee=> {
 web3.eth.getAccounts((error, accts) => {
   for (let i = 0; i<20; i++){
       oracles.push(accts[i]);
-      flightSuretyApp.methods.registerOracle().send({ from:accts[i], value: REGISTRATION_FEE }).then(()=>
+      flightSuretyApp.methods.registerOracle().send({ from:accts[i], value: REGISTRATION_FEE,gas:3000000 }).then(()=>
       flightSuretyApp.methods.getMyIndexes().call({from: accts[i]}).then((result,err) =>
-      console.log(`Oracle Registered: ${result[0]}, ${result[1]}, ${result[2]}`)));
+      {
+        //console.log(`Oracle Registered: ${result[0]}, ${result[1]}, ${result[2]}`)
+        //do nothing
+      }
+    ));
 }});
 
 
-flightSuretyApp.events.OracleRequest({
+flightSuretyApp.events.OracleRequest(/*{
     fromBlock: 0
-  }, function (error, event) {
-    //if (error) console.log(error);
+  },*/ function (error, event) {
+    if (error) console.log(error);
 
+    /*Simulate response*/
+    let simulate_status = STATUS_CODE_UNKNOWN;
+    if (Math.floor(Date.now() / 1000) > event.returnValues.timestamp){
+      let random_number = Math.random();
+      if (random_number < 0.6){
+        simulate_status = STATUS_CODE_ON_TIME; //60% flight on time
+      }
+      else if (random_number < 0.7){
+        simulate_status = STATUS_CODE_LATE_AIRLINE; //10% late
+      }
+      else if (random_number < 0.8){
+        simulate_status = STATUS_CODE_LATE_WEATHER;//10% late due to weather
+      }
+      else if (random_number < 0.9){
+        simulate_status = STATUS_CODE_LATE_TECHNICAL;//10% late due to technical
+      }
+      else {simulate_status = STATUS_CODE_LATE_OTHER;} //remaining 10% late due to other reason
+    }
+    console.log("Flight:",event.returnValues.timestamp,"Now",Math.floor(Date.now() / 1000),"simulate_status",simulate_status);
     /*Simulate Oracle Response*/
-    for (let a= 1; a < 5; a++){
-    /*flightSuretyApp.methods.submitOracleResponse(
+    for (let a= 1; a < 20; a++){
+
+      flightSuretyApp.methods.submitOracleResponse(
                             event.returnValues.index,
                             event.returnValues.airline,
                             event.returnValues.flight,
                             event.returnValues.timestamp,
-                            STATUS_CODE_LATE_AIRLINE).send(
-                            {from: web3.eth.accounts[a]}
-                        );*/
+                            simulate_status).send(
+                            {from: oracles[a],gas:3000000},(error, event)=>{}
+                        );
                       }
                     });
 
